@@ -1,4 +1,3 @@
-
 <style>
     /* Estilo del botón de impresión */
     .btn-imprimir {
@@ -53,12 +52,10 @@
         </div>
 
         <!-- Botón de impresión estético -->
-        <button onclick="window.print()" class="btn btn-imprimir shadow-sm">
-         
+        <button type="button" onclick="window.print()" class="btn btn-imprimir shadow-sm">
             Imprimir Reporte
         </button>
     </div>
-</div>
 
     <!-- 1. Flujos de actividades operativas -->
     <div class="card border rounded-3 overflow-hidden mb-4 mt-3">
@@ -66,6 +63,12 @@
             Flujos de actividades operativas
         </div>
         <table class="table table-borderless align-middle mb-0">
+            <thead class="visually-hidden">
+                <tr>
+                    <th scope="col">Concepto</th>
+                    <th scope="col">Monto</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr class="border-bottom">
                     <td class="ps-3">Cobros a clientes</td>
@@ -93,6 +96,12 @@
             Flujos de inversión
         </div>
         <table class="table table-borderless align-middle mb-0">
+            <thead class="visually-hidden">
+                <tr>
+                    <th scope="col">Concepto</th>
+                    <th scope="col">Monto</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr class="border-bottom">
                     <td class="ps-3">Compra de material de trabajo</td>
@@ -109,6 +118,12 @@
     <!-- 3. Totales / Resumen (Caja Azul Clarita) -->
     <div class="rounded-3 p-3 text-dark" style="background-color: #92b8cd;">
         <table class="table table-borderless align-middle mb-0">
+            <thead class="visually-hidden">
+                <tr>
+                    <th scope="col">Concepto</th>
+                    <th scope="col">Monto</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr class="fw-bold border-bottom border-secondary border-opacity-25">
                     <td>Aumento neto de efectivo del periodo</td>
