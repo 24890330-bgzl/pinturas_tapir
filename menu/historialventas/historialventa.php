@@ -1,29 +1,37 @@
 <?php
-// Habilitar errores para depuración rápida
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Desactivar visualización pública de errores para cumplir reglas de seguridad
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 
-// conexión a la base de datos
+// Conexión a la base de datos
 if (!isset($conexion)) {
     include "../conexion.php";
 }
 
 // Recibir filtros por GET
-$fecha_desde = $_GET['fecha_desde'] ?? '';
-$fecha_hasta = $_GET['fecha_hasta'] ?? '';
-$categoria   = $_GET['categoria'] ?? '';
+$fecha_desde = trim($_GET['fecha_desde'] ?? '');
+$fecha_hasta = trim($_GET['fecha_hasta'] ?? '');
+$categoria   = trim($_GET['categoria'] ?? '');
 
-// Construir filtros SQL
-$where = [];
-if (!empty($fecha_desde)) {
-    $where[] = "v.fecha >= '$fecha_desde'";
+// Construir filtros SQL parametrizados (previene inyección SQL)
+$where  = [];
+$params = [];
+$types  = '';
+
+if ($fecha_desde !== '') {
+    $where[]  = "v.fecha >= ?";
+    $params[] = $fecha_desde;
+    $types   .= 's';
 }
-if (!empty($fecha_hasta)) {
-    $where[] = "v.fecha <= '$fecha_hasta 23:59:59'";
+if ($fecha_hasta !== '') {
+    $where[]  = "v.fecha <= ?";
+    $params[] = $fecha_hasta . " 23:59:59";
+    $types   .= 's';
 }
-if (!empty($categoria)) {
-    $where[] = "p.categoria = '$categoria'";
+if ($categoria !== '') {
+    $where[]  = "p.categoria = ?";
+    $params[] = $categoria;
+    $types   .= 's';
 }
 
 $where_sql = count($where) > 0 ? "WHERE " . implode(" AND ", $where) : "";
@@ -50,15 +58,23 @@ $total_monto = 0;
 
 if (isset($conexion) && $conexion) {
     try {
-        $resultado = $conexion->query($query);
-        if ($resultado && $resultado->num_rows > 0) {
-            while ($row = $resultado->fetch_assoc()) {
-                $ventas[] = $row;
-                $total_monto += floatval($row['total']);
+        $stmt = $conexion->prepare($query);
+        if ($stmt) {
+            if (!empty($params)) {
+                $stmt->bind_param($types, ...$params);
             }
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            if ($resultado && $resultado->num_rows > 0) {
+                while ($row = $resultado->fetch_assoc()) {
+                    $ventas[] = $row;
+                    $total_monto += floatval($row['total']);
+                }
+            }
+            $stmt->close();
         }
     } catch (Throwable $e) {
-        // En caso de fallo en la BD, continúa a los datos de respaldo
+        error_log("Error en consulta de historial de ventas: " . $e->getMessage());
     }
 }
 
@@ -73,7 +89,9 @@ if (empty($ventas)) {
         ['folio' => 'VT-1006', 'fecha_formatted' => '18/10/2026', 'cliente' => 'Ana Martínez', 'producto' => 'Tubo PVC de 2 pulgadas', 'categoria' => 'Plomería', 'cantidad' => 4, 'total' => 520.00, 'estado' => 'Pendiente'],
     ];
     $total_monto = 0;
-    foreach ($ventas as $v) { $total_monto += $v['total']; }
+    foreach ($ventas as $v) {
+        $total_monto += $v['total'];
+    }
 }
 
 $total_registros = count($ventas);
@@ -103,18 +121,18 @@ $total_registros = count($ventas);
             <input type="hidden" name="modulo" value="historial">
 
             <div class="col-md-3">
-                <label class="form-label small fw-semibold text-secondary">Desde</label>
-                <input type="date" name="fecha_desde" class="form-control form-control-sm" value="<?php echo htmlspecialchars($fecha_desde); ?>">
+                <label for="fecha_desde" class="form-label small fw-semibold text-secondary">Desde</label>
+                <input type="date" id="fecha_desde" name="fecha_desde" class="form-control form-control-sm" value="<?php echo htmlspecialchars($fecha_desde); ?>">
             </div>
 
             <div class="col-md-3">
-                <label class="form-label small fw-semibold text-secondary">Hasta</label>
-                <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="<?php echo htmlspecialchars($fecha_hasta); ?>">
+                <label for="fecha_hasta" class="form-label small fw-semibold text-secondary">Hasta</label>
+                <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control form-control-sm" value="<?php echo htmlspecialchars($fecha_hasta); ?>">
             </div>
 
             <div class="col-md-3">
-                <label class="form-label small fw-semibold text-secondary">Categoría</label>
-                <select name="categoria" class="form-select form-select-sm">
+                <label for="categoria" class="form-label small fw-semibold text-secondary">Categoría</label>
+                <select id="categoria" name="categoria" class="form-select form-select-sm">
                     <option value="">Todas las categorías</option>
                     <option value="Pinturas" <?php echo $categoria==='Pinturas'?'selected':''; ?>>Pinturas</option>
                     <option value="Herramientas" <?php echo $categoria==='Herramientas'?'selected':''; ?>>Herramientas</option>
@@ -152,14 +170,14 @@ $total_registros = count($ventas);
             <table class="table table-hover align-middle mb-0 table-historial small">
                 <thead>
                     <tr>
-                        <th>Folio</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Producto</th>
-                        <th>Categoría</th>
-                        <th class="text-center">Cant.</th>
-                        <th class="text-end">Total</th>
-                        <th class="text-center">Estado</th>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Producto</th>
+                        <th scope="col">Categoría</th>
+                        <th scope="col" class="text-center">Cant.</th>
+                        <th scope="col" class="text-end">Total</th>
+                        <th scope="col" class="text-center">Estado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -170,7 +188,7 @@ $total_registros = count($ventas);
                             <td><?php echo htmlspecialchars($row['cliente']); ?></td>
                             <td><?php echo htmlspecialchars($row['producto']); ?></td>
                             <td><?php echo htmlspecialchars($row['categoria']); ?></td>
-                            <td class="text-center"><?php echo $row['cantidad']; ?></td>
+                            <td class="text-center"><?php echo intval($row['cantidad']); ?></td>
                             <td class="text-end fw-semibold">$<?php echo number_format($row['total'], 2); ?></td>
                             <td class="text-center"><?php echo htmlspecialchars($row['estado']); ?></td>
                         </tr>
