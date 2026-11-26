@@ -45,19 +45,19 @@
 
   <form class="form-config" method="POST" action="">
     <div class="form-group">
-      <label>Mensaje al Pie del Ticket / Recibo:</label>
-      <textarea name="pie_ticket" rows="2" placeholder="Ej. ¡Gracias por su compra en Pinturas Tapir!"></textarea>
+      <label for="pie_ticket">Mensaje al Pie del Ticket / Recibo:</label>
+      <textarea id="pie_ticket" name="pie_ticket" rows="2" placeholder="Ej. ¡Gracias por su compra en Pinturas Tapir!"></textarea>
     </div>
 
     <div class="form-group">
-      <label>Alerta de Stock Minimo (Unidades):</label>
-      <input type="number" name="stock_minimo" value="5" min="1">
+      <label for="stock_minimo">Alerta de Stock Minimo (Unidades):</label>
+      <input type="number" id="stock_minimo" name="stock_minimo" value="5" min="1">
       <small style="color: #64748b; font-size: 0.78rem;">El sistema te avisará cuando un producto tenga esta cantidad o menos.</small>
     </div>
 
     <div class="form-group">
-      <label>Porcentaje de IVA por defecto (%):</label>
-      <input type="number" name="iva" value="16" min="0" max="100">
+      <label for="iva">Porcentaje de IVA por defecto (%):</label>
+      <input type="number" id="iva" name="iva" value="16" min="0" max="100">
     </div>
 
     <button type="submit" class="btn-guardar">Guardar Ajustes de Venta</button>
