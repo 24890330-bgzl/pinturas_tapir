@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
 $user = "root";
-$password = "";
+$password = getenv('DB_PASS') ?: '';
 $database = "pinturas_tapir";
 $port = 3307;
 
